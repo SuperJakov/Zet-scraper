@@ -1,34 +1,25 @@
-# dependencies (bun install)
+# dependencies
 node_modules
+package-lock.json
 
-# output
+# DuckDB lock/wal & test files
+*.wal
+*.tmp
+*.tmp_*.parquet
+duckdb/test_validate_*
+
+# output & logs
 out
 dist
 *.tgz
-
-# code coverage
-coverage
-*.lcov
-
-# logs
 logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+*.log
 
-# dotenv environment variable files
+# caches & env
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
-
-# caches
-.eslintcache
+.env.*
 .cache
 *.tsbuildinfo
-
-# IntelliJ based IDEs
-.idea
-
-# Finder (MacOS) folder config
 .DS_Store
+.idea
+.vscode

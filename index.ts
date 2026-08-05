@@ -1,1 +1,1 @@
-console.log("Hi!");
+import "./src/index.ts";
