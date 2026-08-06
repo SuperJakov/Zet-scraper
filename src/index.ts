@@ -43,7 +43,13 @@ export function commitAndPushData(): void {
     const commitSuccess = runCommand(`git commit -m "${commitMsg}"`);
 
     if (commitSuccess) {
-      const pushSuccess = runCommand("git push");
+      runCommand("git pull --rebase origin main");
+      let pushSuccess = runCommand("git push origin main");
+      if (!pushSuccess) {
+        logger.warn("Initial git push failed. Retrying pull --rebase and push...");
+        runCommand("git pull --rebase origin main");
+        pushSuccess = runCommand("git push origin main");
+      }
       if (pushSuccess) {
         logger.metrics.incCommit();
         logger.info("Data committed and pushed successfully.");

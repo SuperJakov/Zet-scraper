@@ -55,7 +55,8 @@ jobs:
           git add data/ duckdb/
           if ! git diff --staged --quiet; then
             git commit -m "data(collect): hourly Parquet dataset update [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
-            git push
+            git pull --rebase origin main || git rebase --abort || true
+            git push origin main
           else
             echo "No data changes to commit."
           fi
