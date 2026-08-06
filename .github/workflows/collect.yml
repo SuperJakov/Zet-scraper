@@ -1,8 +1,6 @@
 name: ZET GTFS-Realtime Data Collector
 
 on:
-  schedule:
-    - cron: '0 */3 * * *'
   workflow_dispatch:
 
 concurrency:
