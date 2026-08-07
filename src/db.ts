@@ -45,6 +45,7 @@ export class ZetDatabase {
 
   public async initSchema(): Promise<void> {
     logger.info("Initializing DuckDB schema...");
+    await this.query("SET TimeZone = 'UTC';");
     await this.query(`
       CREATE TABLE IF NOT EXISTS vehicle_positions (
         timestamp TIMESTAMP,

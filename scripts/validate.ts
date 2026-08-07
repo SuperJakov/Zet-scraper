@@ -78,7 +78,7 @@ async function validate() {
   try {
     const today = new Date();
     const dateStr = today.toISOString().split("T")[0] || "1970-01-01";
-    const hourStr = String(today.getHours()).padStart(2, "0");
+    const hourStr = String(today.getUTCHours()).padStart(2, "0");
     const exportedCount = await db.exportHourParquet(dateStr, hourStr);
 
     const parquetPath = path.join(CONFIG.DATA_DIR, `date=${dateStr}`, `hour=${hourStr}`, "vehicle_positions.parquet");
