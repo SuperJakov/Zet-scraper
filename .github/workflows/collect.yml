@@ -38,9 +38,9 @@ jobs:
       - name: Run Collection Pipeline Shift (~3 hours)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WORKFLOW_MAX_RUN_TIME_MS: '10200000' # 170 minutes
-          POLL_INTERVAL_MS: '15000' # 15 seconds
-          EXPORT_INTERVAL_MS: '3600000' # 60 minutes
+          WORKFLOW_MAX_RUN_TIME_MS: "10200000" # 170 minutes
+          POLL_INTERVAL_MS: "10000" # 10 seconds
+          EXPORT_INTERVAL_MS: "3600000" # 60 minutes
         run: bun run src/index.ts
 
       - name: Commit & Push Final Parquet Data
