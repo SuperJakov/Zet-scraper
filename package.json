@@ -10,6 +10,7 @@
     "validate": "bun run scripts/validate.ts",
     "backfill": "bun run scripts/backfill.ts",
     "export": "bun run scripts/export.ts",
+    "predict": "bun run scripts/predict_vehicle.ts",
     "check": "tsc --noEmit"
   },
   "devDependencies": {

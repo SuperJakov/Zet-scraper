@@ -15,6 +15,10 @@ dist
 logs
 *.log
 
+# GTFS static feed downloads & extracted files
+duckdb/gtfs_zet*
+duckdb/*.zip
+
 # caches & env
 .env
 .env.*
