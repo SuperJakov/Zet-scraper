@@ -1,20 +1,22 @@
 import transitRealtime from "gtfs-realtime-bindings";
 import { CONFIG } from "../src/config";
 import { ZetDatabase, type VehicleObservation } from "../src/db";
+import { fetchWithRetry } from "../src/fetch";
 import { GtfsMlPredictor, haversineDistanceMeters } from "../src/prediction/gtfs_ml_predictor";
 
 const { FeedMessage } = transitRealtime.transit_realtime;
 
 async function fetchLiveFeed(): Promise<VehicleObservation[]> {
   const fetchTime = new Date();
-  const response = await fetch(CONFIG.FEED_URL, {
+  const response = await fetchWithRetry(CONFIG.FEED_URL, {
+    retries: CONFIG.FETCH_MAX_RETRIES,
+    retryDelayMs: CONFIG.FETCH_RETRY_DELAY_MS,
+    timeoutMs: CONFIG.FETCH_TIMEOUT_MS,
     headers: {
       "User-Agent": "ZET-GTFS-ML-Predictor/2.0",
       Accept: "application/x-protobuf, application/octet-stream",
     },
-    signal: AbortSignal.timeout(10000),
   });
-  if (!response.ok) throw new Error(`HTTP error ${response.status}`);
 
   const buffer = new Uint8Array(await response.arrayBuffer());
   const feed = FeedMessage.decode(buffer);

@@ -1,6 +1,7 @@
 import transitRealtime from "gtfs-realtime-bindings";
 import { CONFIG } from "./config";
 import { ZetDatabase, type VehicleObservation } from "./db";
+import { fetchWithRetry } from "./fetch";
 import { logger } from "./logger";
 
 const { FeedMessage } = transitRealtime.transit_realtime;
@@ -15,20 +16,15 @@ export interface FetchResult {
 export async function fetchAndCollect(db: ZetDatabase): Promise<FetchResult> {
   const fetchTime = new Date();
   try {
-    const response = await fetch(CONFIG.FEED_URL, {
+    const response = await fetchWithRetry(CONFIG.FEED_URL, {
+      retries: CONFIG.FETCH_MAX_RETRIES,
+      retryDelayMs: CONFIG.FETCH_RETRY_DELAY_MS,
+      timeoutMs: CONFIG.FETCH_TIMEOUT_MS,
       headers: {
         "User-Agent": "ZET-GTFS-RT-Collector/1.0",
         Accept: "application/x-protobuf, application/octet-stream",
       },
-      signal: AbortSignal.timeout(10000), // 10s fetch timeout
     });
-
-    if (!response.ok) {
-      const errMessage = `HTTP status ${response.status} ${response.statusText}`;
-      logger.error(`Failed to fetch GTFS feed: ${errMessage}`);
-      logger.metrics.incFeedFailure();
-      return { success: false, entityCount: 0, insertedCount: 0, error: errMessage };
-    }
 
     const arrayBuffer = await response.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);

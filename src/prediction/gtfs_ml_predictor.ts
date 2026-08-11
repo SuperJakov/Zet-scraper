@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ZetDatabase } from "../db";
+import { fetchWithRetry } from "../fetch";
 
 // ─── GTFS Types ────────────────────────────────────────────────────────────────
 
@@ -149,8 +150,11 @@ export class GtfsMlPredictor {
     fs.mkdirSync(this.gtfsDir, { recursive: true });
     const zipPath = path.join(this.gtfsDir, "..", "gtfs_zet.zip");
 
-    const res = await fetch("https://www.zet.hr/gtfs-scheduled/latest");
-    if (!res.ok) throw new Error(`Failed to download GTFS static feed: HTTP ${res.status}`);
+    const res = await fetchWithRetry("https://www.zet.hr/gtfs-scheduled/latest", {
+      retries: 10,
+      retryDelayMs: 5000,
+      timeoutMs: 45000,
+    });
 
     const arrayBuffer = await res.arrayBuffer();
     fs.writeFileSync(zipPath, Buffer.from(arrayBuffer));

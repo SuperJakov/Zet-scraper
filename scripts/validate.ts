@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { CONFIG } from "../src/config";
 import { ZetDatabase } from "../src/db";
+import { fetchWithRetry } from "../src/fetch";
 import { logger } from "../src/logger";
 
 const { FeedMessage } = transitRealtime.transit_realtime;
@@ -15,17 +16,20 @@ async function validate() {
   logger.info(`Step 1: Checking feed reachability at ${CONFIG.FEED_URL}...`);
   let buffer: Uint8Array | null = null;
   try {
-    const response = await fetch(CONFIG.FEED_URL, {
-      signal: AbortSignal.timeout(10000),
+    const response = await fetchWithRetry(CONFIG.FEED_URL, {
+      retries: CONFIG.FETCH_MAX_RETRIES,
+      retryDelayMs: CONFIG.FETCH_RETRY_DELAY_MS,
+      timeoutMs: CONFIG.FETCH_TIMEOUT_MS,
+      headers: {
+        "User-Agent": "ZET-GTFS-RT-Validator/1.0",
+        Accept: "application/x-protobuf, application/octet-stream",
+      },
     });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status} ${response.statusText}`);
-    }
     const ab = await response.arrayBuffer();
     buffer = new Uint8Array(ab);
     logger.info(`✓ Feed reachable! Downloaded ${buffer.length} bytes.`);
   } catch (err) {
-    logger.error("✗ Feed reachability check failed", err);
+    logger.error(`✗ Feed reachability check failed after ${CONFIG.FETCH_MAX_RETRIES} attempts`, err);
     passed = false;
   }
 
