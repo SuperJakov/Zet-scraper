@@ -126,8 +126,8 @@ export class ZetDatabase {
     return rows;
   }
 
-  public async exportHourParquet(dateStr: string, hourStr: string): Promise<number> {
-    const targetDir = path.join(CONFIG.DATA_DIR, `date=${dateStr}`, `hour=${hourStr}`);
+  public async exportHourParquet(dateStr: string, hourStr: string, baseDataDir: string = CONFIG.DATA_DIR): Promise<number> {
+    const targetDir = path.join(baseDataDir, `date=${dateStr}`, `hour=${hourStr}`);
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
     }
@@ -138,6 +138,19 @@ export class ZetDatabase {
     // Normalize dateStr and hourStr format check
     const startWindow = `${dateStr} ${hourStr}:00:00`;
     const endWindow = `${dateStr} ${hourStr}:59:59.999`;
+
+    // Skip rewriting existing Parquet file if DuckDB has 0 new observations for this partition window
+    const dbRowsResult = await this.query<{ cnt: bigint }>(
+      `SELECT COUNT(*) as cnt FROM vehicle_positions WHERE timestamp >= '${startWindow}' AND timestamp <= '${endWindow}';`
+    );
+    const newDbRowsCount = Number(dbRowsResult[0]?.cnt || 0);
+
+    if (newDbRowsCount === 0 && fs.existsSync(targetFile)) {
+      const verifyResult = await this.query<{ cnt: bigint }>(
+        `SELECT COUNT(*) as cnt FROM read_parquet('${targetFile.replace(/'/g, "''")}');`
+      );
+      return Number(verifyResult[0]?.cnt || 0);
+    }
 
     let exportQuery: string;
 

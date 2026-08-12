@@ -79,17 +79,18 @@ async function validate() {
 
   // 4. Parquet export test
   logger.info("Step 4: Testing Parquet export & read-back...");
+  const tempParquetDir = path.join(CONFIG.DUCKDB_DIR, `test_parquet_${Date.now()}`);
   try {
     const today = new Date();
     const dateStr = today.toISOString().split("T")[0] || "1970-01-01";
     const hourStr = String(today.getUTCHours()).padStart(2, "0");
-    const exportedCount = await db.exportHourParquet(dateStr, hourStr);
+    const exportedCount = await db.exportHourParquet(dateStr, hourStr, tempParquetDir);
 
-    const parquetPath = path.join(CONFIG.DATA_DIR, `date=${dateStr}`, `hour=${hourStr}`, "vehicle_positions.parquet");
+    const parquetPath = path.join(tempParquetDir, `date=${dateStr}`, `hour=${hourStr}`, "vehicle_positions.parquet");
     if (!fs.existsSync(parquetPath)) {
       throw new Error(`Parquet export file missing at ${parquetPath}`);
     }
-    logger.info(`✓ Parquet export verified! ${exportedCount} rows written to ${parquetPath}`);
+    logger.info(`✓ Parquet export verified! ${exportedCount} rows written to test directory.`);
   } catch (err) {
     logger.error("✗ Parquet export verification failed", err);
     passed = false;
@@ -101,6 +102,13 @@ async function validate() {
         fs.unlinkSync(tempDbFile);
       } catch {
         // Ignore temporary file cleanup locks on Windows
+      }
+    }
+    if (fs.existsSync(tempParquetDir)) {
+      try {
+        fs.rmSync(tempParquetDir, { recursive: true, force: true });
+      } catch {
+        // Ignore temporary dir cleanup locks on Windows
       }
     }
   }

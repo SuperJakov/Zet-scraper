@@ -11,6 +11,8 @@
     "backfill": "bun run scripts/backfill.ts",
     "export": "bun run scripts/export.ts",
     "predict": "bun run scripts/predict_vehicle.ts",
+    "prediction-logger": "bun run scripts/prediction_logger.ts",
+    "prediction-analysis": "bun run scripts/prediction_analysis.ts",
     "check": "tsc --noEmit"
   },
   "devDependencies": {
