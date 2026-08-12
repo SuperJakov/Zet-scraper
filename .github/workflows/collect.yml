@@ -13,7 +13,7 @@ jobs:
   collect:
     name: Continuous GTFS Data Collection Shift
     runs-on: ubuntu-latest
-    timeout-minutes: 200
+    timeout-minutes: 90
 
     permissions:
       contents: write
@@ -37,12 +37,12 @@ jobs:
       - name: Validate System & Environment
         run: bun run validate
 
-      - name: Run Collection Pipeline Shift (~3 hours)
+      - name: Run Collection Pipeline Shift (55 minutes)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WORKFLOW_MAX_RUN_TIME_MS: "10200000" # 170 minutes
+          WORKFLOW_MAX_RUN_TIME_MS: "3300000" # 55 minutes
           POLL_INTERVAL_MS: "10000" # 10 seconds
-          EXPORT_INTERVAL_MS: "3600000" # 60 minutes
+          EXPORT_INTERVAL_MS: "3300000" # 55 minutes
         run: bun run src/index.ts
 
       - name: Commit & Push Final Parquet Data

@@ -148,9 +148,9 @@ async function main() {
   commitAndPushData();
   await db.close();
 
-  // If we ran full duration, trigger next workflow shift
+  // Trigger next workflow shift only if explicitly enabled (default is schedule-driven)
   const totalElapsed = Date.now() - startTime;
-  if (totalElapsed >= maxDurationMs - CONFIG.POLL_INTERVAL_MS * 2) {
+  if (process.env.ENABLE_SELF_TRIGGER === "true" && totalElapsed >= maxDurationMs - CONFIG.POLL_INTERVAL_MS * 2) {
     triggerWorkflowContinuation();
   }
 
