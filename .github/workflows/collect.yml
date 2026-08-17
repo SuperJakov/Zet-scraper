@@ -3,7 +3,7 @@ name: ZET GTFS-Realtime Data Collector
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 * * * *'
+    - cron: "0 * * * *"
 
 concurrency:
   group: zet-collector
@@ -52,11 +52,17 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git rebase --abort >/dev/null 2>&1 || true
+          rm -rf .git/rebase-merge .git/rebase-apply || true
+
+          git fetch origin main
+          git checkout -B main origin/main
+
           git add data/ duckdb/
-          if ! git diff --staged --quiet; then
+          if ! git diff --cached --quiet; then
             git commit -m "data(collect): hourly Parquet dataset update [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
-            git pull --rebase origin main || git rebase --abort || true
-            git push origin main
+            git push origin HEAD:main
           else
             echo "No data changes to commit."
           fi
