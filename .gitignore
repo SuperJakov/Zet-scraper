@@ -3,6 +3,7 @@ node_modules
 package-lock.json
 
 # DuckDB lock/wal & test files
+duckdb/zet.duckdb
 *.wal
 *.tmp
 *.tmp_*.parquet

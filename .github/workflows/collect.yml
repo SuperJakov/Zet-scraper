@@ -59,7 +59,7 @@ jobs:
           git fetch origin main
           git checkout -B main origin/main
 
-          git add data/ duckdb/
+          git add data/
           if ! git diff --cached --quiet; then
             git commit -m "data(collect): hourly Parquet dataset update [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]"
             git push origin HEAD:main

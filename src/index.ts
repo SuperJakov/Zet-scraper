@@ -16,18 +16,23 @@ function runCommand(command: string): boolean {
 }
 
 export function commitAndPushData(): void {
-  if (process.env.GITHUB_ACTIONS !== "true" && process.env.ENABLE_GIT_PUSH !== "true") {
+  if (
+    process.env.GITHUB_ACTIONS !== "true" &&
+    process.env.ENABLE_GIT_PUSH !== "true"
+  ) {
     logger.info("Skipping Git commit/push (not running in GitHub Actions)");
     return;
   }
 
   logger.info("Executing Git commit and push for accumulated data...");
   runCommand('git config --global user.name "github-actions[bot]"');
-  runCommand('git config --global user.email "github-actions[bot]@users.noreply.github.com"');
+  runCommand(
+    'git config --global user.email "github-actions[bot]@users.noreply.github.com"',
+  );
 
-  const addSuccess = runCommand("git add data/ duckdb/");
+  const addSuccess = runCommand("git add data/");
   if (!addSuccess) {
-    logger.warn("Failed to stage data/ and duckdb/");
+    logger.warn("Failed to stage data/");
     return;
   }
 
@@ -46,7 +51,9 @@ export function commitAndPushData(): void {
       runCommand("git pull --rebase origin main");
       let pushSuccess = runCommand("git push origin main");
       if (!pushSuccess) {
-        logger.warn("Initial git push failed. Retrying pull --rebase and push...");
+        logger.warn(
+          "Initial git push failed. Retrying pull --rebase and push...",
+        );
         runCommand("git pull --rebase origin main");
         pushSuccess = runCommand("git push origin main");
       }
@@ -68,13 +75,17 @@ export function triggerWorkflowContinuation(): void {
     return;
   }
 
-  logger.info("Triggering workflow continuation via GitHub CLI (gh workflow run)...");
+  logger.info(
+    "Triggering workflow continuation via GitHub CLI (gh workflow run)...",
+  );
   const success = runCommand("gh workflow run collect.yml");
   if (success) {
     logger.metrics.incRestart();
     logger.info("Workflow continuation successfully dispatched.");
   } else {
-    logger.error("Failed to dispatch workflow continuation via gh workflow run.");
+    logger.error(
+      "Failed to dispatch workflow continuation via gh workflow run.",
+    );
   }
 }
 
@@ -82,13 +93,16 @@ async function main() {
   const args = process.argv.slice(2);
   const isSingleRun = args.includes("--single-run");
   const durationArgIndex = args.indexOf("--duration-ms");
-  const durationValue = durationArgIndex !== -1 ? args[durationArgIndex + 1] : undefined;
+  const durationValue =
+    durationArgIndex !== -1 ? args[durationArgIndex + 1] : undefined;
   const maxDurationMs = durationValue
     ? parseInt(durationValue, 10)
     : CONFIG.WORKFLOW_MAX_RUN_TIME_MS;
 
   logger.info("Starting ZET GTFS-Realtime Data Collection Pipeline");
-  logger.info(`Parameters: singleRun=${isSingleRun}, maxDurationMs=${maxDurationMs}ms, pollInterval=${CONFIG.POLL_INTERVAL_MS}ms`);
+  logger.info(
+    `Parameters: singleRun=${isSingleRun}, maxDurationMs=${maxDurationMs}ms, pollInterval=${CONFIG.POLL_INTERVAL_MS}ms`,
+  );
 
   const db = new ZetDatabase();
   await db.initSchema();
@@ -122,7 +136,9 @@ async function main() {
 
     // Check if max execution time reached
     if (elapsed >= maxDurationMs) {
-      logger.info(`Execution window limit reached (${maxDurationMs}ms). Initiating shutdown sequence...`);
+      logger.info(
+        `Execution window limit reached (${maxDurationMs}ms). Initiating shutdown sequence...`,
+      );
       break;
     }
 
@@ -150,7 +166,10 @@ async function main() {
 
   // Trigger next workflow shift only if explicitly enabled (default is schedule-driven)
   const totalElapsed = Date.now() - startTime;
-  if (process.env.ENABLE_SELF_TRIGGER === "true" && totalElapsed >= maxDurationMs - CONFIG.POLL_INTERVAL_MS * 2) {
+  if (
+    process.env.ENABLE_SELF_TRIGGER === "true" &&
+    totalElapsed >= maxDurationMs - CONFIG.POLL_INTERVAL_MS * 2
+  ) {
     triggerWorkflowContinuation();
   }
 
